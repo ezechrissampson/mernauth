@@ -18,7 +18,7 @@ const Dashboard = () => {
   return (
     <div className="vh-100 bg-light">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
+        <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           MERN Auth Project
         </a>
@@ -26,8 +26,8 @@ const Dashboard = () => {
           <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
             Logout
           </button>
-           <Link to="/change-password" className="btn btn-outline-light btn-sm ms-2">
-            Reset Password
+           <Link to="/profile" className="btn btn-outline-light btn-sm ms-2">
+            Profile
           </Link>
         </div>
       </nav>
