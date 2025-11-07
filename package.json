@@ -1,0 +1,25 @@
+{
+  "name": "mernauth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix user\" \"npm run dev --prefix admin\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ezechrissampson/mernauth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ezechrissampson/mernauth/issues"
+  },
+  "homepage": "https://github.com/ezechrissampson/mernauth#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
