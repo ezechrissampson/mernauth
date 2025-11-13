@@ -1,16 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaUserCircle, FaLock } from "react-icons/fa";
+import axios from "axios";
 
 const Profile = () => {
+
+  const [user, setUser] = useState(null);
+
+  
   const [profile, setProfile] = useState({
-    fullName: "Ezechrissam",
-    email: "ezechris@example.com",
+    name: "",
+    email: "",
     profilePic: "",
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+
+    useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    axios
+      .get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setUser(res.data))
+      .catch(() => {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      });
+  }, []);
+
+  if (!user) return <div className="text-center mt-5">Loading...</div>;
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -41,7 +67,13 @@ const Profile = () => {
           User Profile
         </a>
         <div className="ms-auto">
-          <button className="btn btn-outline-light btn-sm">Logout</button>
+          <button className="btn btn-outline-light btn-sm"
+          onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/login";
+            }}
+          
+          >Logout</button>
           <Link to="/dashboard" className="btn btn-outline-light btn-sm ms-2">Dashboard</Link>
         </div>
       </nav>
@@ -84,7 +116,7 @@ const Profile = () => {
                   type="text"
                   className="form-control"
                   name="fullName"
-                  value={profile.fullName}
+                  value={user.name}
                   onChange={handleChange}
                 />
               </div>
@@ -95,7 +127,7 @@ const Profile = () => {
                   type="email"
                   className="form-control"
                   name="email"
-                  value={profile.email}
+                  value={user.email}
                   readOnly
                 />
               </div>
