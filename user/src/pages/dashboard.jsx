@@ -2,11 +2,9 @@ import React from "react";
 import { FaCode, FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
+
 const Dashboard = () => {
-  const user = {
-    fullName: "Ezechrissam",
-    email: "ezechrissampson@gmail.com",
-  };
+  
 
   return (
     <div className="vh-100 bg-light">
@@ -26,7 +24,7 @@ const Dashboard = () => {
       {/* Dashboard Content */}
       <div className="container mt-5 text-center">
         <h2 className="fw-bold text-primary">
-          Welcome, {user.fullName}
+          Welcome, Ezechrissam
         </h2>
         <p className="text-muted mb-4">
           Build, manage, and explore — this project showcases a full MERN stack
