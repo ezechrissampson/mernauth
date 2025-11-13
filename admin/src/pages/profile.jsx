@@ -64,7 +64,7 @@ const Profile = () => {
               </div>
 
               <div className="col-md-6">
-                <label className="form-label fw-semibold">Email (Set)</label>
+                <label className="form-label fw-semibold">Email</label>
                 <input
                   type="email"
                   className="form-control"
