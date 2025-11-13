@@ -1,23 +1,37 @@
 import React, { useState } from "react";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import axios from "axios"
 
 const Signup = () => {
   const [formData, setFormData] = useState({
+    name: "",
     username: "",
-    fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+
+  
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("User registered:", formData);
-    // TODO: Connect to backend API (POST /api/auth/register)
+    if (formData.password !== formData.confirmPassword) {
+      return setMessage("Passwords do not match");
+    }
+
+    try {
+       await axios.post("http://localhost:5000/api/auth/signup", formData);
+      setMessage("Signup successful! You can now login.");
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Signup failed");
+    }
   };
 
   const handleGoogleAuth = () => {
@@ -37,8 +51,22 @@ const Signup = () => {
         <p className="text-center text-muted mb-4">
           Sign up to access your dashboard and manage your account
         </p>
-
+        {message && <div className="alert alert-info">{message}</div>}
         <form onSubmit={handleSubmit}>
+
+        <div className="mb-3">
+            <label className="form-label fw-semibold">Full Name</label>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Enter full name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
           <div className="mb-3">
             <label className="form-label fw-semibold">Username</label>
             <input
@@ -47,19 +75,6 @@ const Signup = () => {
               placeholder="Enter username"
               name="username"
               value={formData.username}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Full Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter full name"
-              name="fullName"
-              value={formData.fullName}
               onChange={handleChange}
               required
             />
@@ -90,6 +105,17 @@ const Signup = () => {
               required
             />
           </div>
+
+          <div className="mb-3">
+              <label className="form-label">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                className="form-control"
+                onChange={handleChange}
+                required
+              />
+           </div>
 
           <button type="submit" className="btn btn-primary w-100 mb-3">
             Sign Up

@@ -1,22 +1,28 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaGoogle, FaApple } from "react-icons/fa";
+import axios from "axios";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    identifier: "", // username or email
-    password: "",
-  });
+  const [formData, setForm] = useState({ emailOrUsername: "", password: "" });
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setForm({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login credentials:", formData);
-    // TODO: Connect to backend login API (POST /api/auth/login)
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      localStorage.setItem("token", res.data.token);
+      setMessage("Login successful!");
+      window.location.href = "/profile";
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Login failed");
+    }
   };
+
 
   const handleGoogleAuth = () => {
     console.log("Google Auth Clicked");
@@ -36,32 +42,32 @@ const Login = () => {
           Login to access your account and dashboard
         </p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Username or Email</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter username or email"
-              name="identifier"
-              value={formData.identifier}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        {message && <div className="alert alert-info">{message}</div>}
 
-          <div className="mb-2">
-            <label className="form-label fw-semibold">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label">Email or Username</label>
+              <input
+                type="text"
+                name="emailOrUsername"
+                placeholder="Enter username or email"
+                className="form-control"
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter password"
+                className="form-control"
+                onChange={handleChange}
+                required
+              />
+            </div>
 
           <div className="text-end mb-4">
             <Link to="/forgot-password" className="text-decoration-none text-primary fw-semibold">
