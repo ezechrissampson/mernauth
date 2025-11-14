@@ -31,7 +31,11 @@ const AdminDashboard = () => {
           Admin Dashboard
         </a>
         <div className="ms-auto">
-          <button className="btn btn-outline-light btn-sm">Logout</button>
+          <button className="btn btn-outline-light btn-sm"
+          onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/";
+            }}>Logout</button>
           <Link className="btn btn-outline-light btn-sm ms-2" to="/admin/profile">Profile</Link>
         </div>
       </nav>

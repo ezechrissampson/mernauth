@@ -5,17 +5,7 @@ import axios from "axios";
 
 const Profile = () => {
 
-  const [user, setUser] = useState(null);
-
-  
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    profilePic: "",
-    oldPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
+  const [user, setUser] = useState([]);
 
 
 
@@ -42,12 +32,12 @@ const Profile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfile({ ...profile, profilePic: URL.createObjectURL(file) });
+      setUser({ ...user, profilePic: URL.createObjectURL(file) });
     }
   };
 
   const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
@@ -85,9 +75,9 @@ const Profile = () => {
           <h3 className="fw-bold text-center text-primary mb-4">My Profile</h3>
 
           <div className="text-center mb-4">
-            {profile.profilePic ? (
+            {user.profilePic ? (
               <img
-                src={profile.profilePic}
+                src={user.profilePic}
                 alt="Profile"
                 className="rounded-circle mb-3"
                 style={{ width: "110px", height: "110px", objectFit: "cover" }}
@@ -129,7 +119,6 @@ const Profile = () => {
                   className="form-control"
                   name="email"
                   value={user.email}
-                  readOnly
                 />
               </div>
             </div>
@@ -156,7 +145,7 @@ const Profile = () => {
                     type="password"
                     className="form-control"
                     name="oldPassword"
-                    value={profile.oldPassword}
+                    value={user.oldPassword}
                     onChange={handleChange}
                   />
                 </div>
@@ -166,7 +155,7 @@ const Profile = () => {
                     type="password"
                     className="form-control"
                     name="newPassword"
-                    value={profile.newPassword}
+                    value={user.newPassword}
                     onChange={handleChange}
                   />
                 </div>
@@ -176,7 +165,7 @@ const Profile = () => {
                     type="password"
                     className="form-control"
                     name="confirmPassword"
-                    value={profile.confirmPassword}
+                    value={user.confirmPassword}
                     onChange={handleChange}
                   />
                 </div>

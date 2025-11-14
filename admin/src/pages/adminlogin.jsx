@@ -1,40 +1,24 @@
 import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { FaLock } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import axios from "axios"
 
 const Adminlogin = () => {
-  const [formData, setFormData] = useState({ username: "", pin: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [formData, setForm] = useState({ emailOrUsername: "", pin: "" });
+  const [error, seterror] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setForm({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const { username, pin } = formData;
-
-    if (!username || !pin) {
-      setError("Please fill in all fields.");
-      return;
-    }
-
-    if (pin.length !== 4) {
-      setError("PIN must be 4 digits.");
-      return;
-    }
-
-    // ✅ Example check (replace with backend API validation later)
-    if (username === "admin" && pin === "1234") {
-      console.log("Admin authenticated!");
-      setError("");
-      // Redirect to dashboard
-      navigate("/admin/dashboard");
-    } else {
-      setError("Invalid username or PIN.");
+    try {
+      const res = await axios.post("http://localhost:5000/api/admin/login", formData);
+      localStorage.setItem("token", res.data.token);
+      seterror("Login successful!");
+      window.location.href = "/dashbaord";
+    } catch (err) {
+      seterror(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -49,27 +33,26 @@ const Adminlogin = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label fw-semibold">Username</label>
+            <label className="form-label fw-semibold">Username or Email</label>
             <input
               type="text"
               className="form-control"
-              name="username"
-              placeholder="Enter admin username"
-              value={formData.username}
+              name="emailOrUsername"
+              placeholder="Enter admin username or Email"
               onChange={handleChange}
+              required
             />
           </div>
 
           <div className="mb-4">
-            <label className="form-label fw-semibold">4-Digit PIN</label>
+            <label className="form-label fw-semibold"> PIN</label>
             <input
               type="password"
               className="form-control"
               name="pin"
               placeholder="Enter admin PIN"
-              value={formData.pin}
               onChange={handleChange}
-              maxLength="4"
+              required
             />
           </div>
 
