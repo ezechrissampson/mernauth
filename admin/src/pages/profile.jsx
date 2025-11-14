@@ -40,7 +40,11 @@ const Profile = () => {
         </a>
         <div className="ms-auto">
           <Link to="/admin/dashboard" className="btn btn-outline-light btn-sm">Dashboard</Link>
-          <button className="btn btn-outline-light btn-sm ms-2">Logout</button>
+          <button className="btn btn-outline-light btn-sm ms-2"
+           onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/";
+            }}>Logout</button>
         </div>
       </nav>
 
