@@ -4,7 +4,7 @@ import axios from "axios"
 
 const Adminlogin = () => {
   const [formData, setForm] = useState({ emailOrUsername: "", pin: "" });
-  const [error, seterror] = useState("");
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...formData, [e.target.name]: e.target.value });
@@ -14,11 +14,11 @@ const Adminlogin = () => {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:5000/api/admin/login", formData);
-      localStorage.setItem("token", res.data.token);
-      seterror("Login successful!");
-      window.location.href = "/dashbaord";
+      localStorage.setItem("adminToken", res.data.token);
+      setError("");
+      window.location.href = "/admin/dashboard";
     } catch (err) {
-      seterror(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -45,7 +45,7 @@ const Adminlogin = () => {
           </div>
 
           <div className="mb-4">
-            <label className="form-label fw-semibold"> PIN</label>
+            <label className="form-label fw-semibold">PIN</label>
             <input
               type="password"
               className="form-control"
@@ -63,7 +63,10 @@ const Adminlogin = () => {
 
         {error && <div className="alert alert-danger mt-3">{error}</div>}
 
-        <p className="text-center text-muted mt-4 mb-0" style={{ fontSize: "0.9rem" }}>
+        <p
+          className="text-center text-muted mt-4 mb-0"
+          style={{ fontSize: "0.9rem" }}
+        >
           Restricted section — for authorized administrators only.
         </p>
       </div>
