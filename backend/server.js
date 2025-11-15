@@ -18,7 +18,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", adminusersRoutes)
 app.use("/api/user", userRoutes)
-app.use("api/admin", adminRoutes)
+app.use("/api/admin", adminRoutes)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
