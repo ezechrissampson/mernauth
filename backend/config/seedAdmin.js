@@ -16,7 +16,7 @@ export const seedAdmin = async () => {
 
       console.log("✅ Default admin created.");
     } else {
-      console.log("✔️ Admin already exists.");
+      console.log(" ");
     }
   } catch (err) {
     console.error("❌ Error seeding admin:", err);
