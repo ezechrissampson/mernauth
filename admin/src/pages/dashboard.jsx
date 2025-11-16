@@ -4,27 +4,11 @@ import Usertable from "./usertable";
 import { FaUserShield } from "react-icons/fa";
 
 const AdminDashboard = () => {
-  // Example user data (replace with backend data later)
-  const users = [
-    {
-      fullName: "Jane Doe",
-      username: "jane_doe",
-      email: "jane@example.com",
-      dateJoined: "2025-10-29",
-      role: "User",
-    },
-    {
-      fullName: "John Smith",
-      username: "johnsmith",
-      email: "johnsmith@example.com",
-      dateJoined: "2025-10-20",
-      role: "User",
-    },
-  ];
+  const users = [];
 
   return (
     <div className="vh-100 bg-light">
-      {/* Navbar */}
+      
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           <FaUserShield className="me-2" />
@@ -40,7 +24,7 @@ const AdminDashboard = () => {
         </div>
       </nav>
 
-      {/* Main content */}
+
       <div className="container mt-4">
         <div className="text-center mb-4">
           <h3 className="fw-bold text-primary">Welcome, Admin</h3>
@@ -50,7 +34,6 @@ const AdminDashboard = () => {
           </p>
         </div>
 
-        {/* Import User Table */}
         <Usertable users={users} />
 
         <footer className="text-center text-muted mt-5 mb-3" style={{ fontSize: "0.9rem" }}>
