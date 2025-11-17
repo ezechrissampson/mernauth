@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
@@ -14,10 +15,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", adminusersRoutes)
-app.use("/api/user", userRoutes)
-app.use("/api/admin", adminRoutes)
+app.use("/api/auth", authRoutes, userRoutes);
+app.use("/api/users", adminusersRoutes);
+app.use("/uploads", express.static("uploads"));
+app.use("/api/admin", adminRoutes);
+
 
 const PORT = process.env.PORT
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
