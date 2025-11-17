@@ -8,7 +8,6 @@ const Forgotpassword = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Password reset requested for:", email);
-    // TODO: send POST request to backend (e.g. /api/auth/forgot-password)
     setSubmitted(true);
   };
 

@@ -11,13 +11,13 @@ export const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // update fields if provided, otherwise keep old
+    
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
 
     const updatedUser = await user.save();
 
-    // return updated data (without password)
+    
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -50,13 +50,13 @@ export const updateUserPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // check old password
+    
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Old password is incorrect" });
     }
 
-    // hash new password
+   
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
 
@@ -74,7 +74,6 @@ export const updateUserPassword = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    // `protect` already attached user without password
     if (!req.user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -103,9 +102,9 @@ export const updateUserImage = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔥 delete old image if exists
+    
     if (user.profilePic) {
-      const oldPath = path.join(process.cwd(), user.profilePic); // e.g. /project/uploads/oldfile.png
+      const oldPath = path.join(process.cwd(), user.profilePic);
 
       fs.access(oldPath, fs.constants.F_OK, (err) => {
         if (!err) {
@@ -118,8 +117,8 @@ export const updateUserImage = async (req, res) => {
       });
     }
 
-    // save new image path
-    user.profilePic = req.file.path; // e.g. "uploads/profilePic-12345.png"
+
+    user.profilePic = req.file.path;
     const updatedUser = await user.save();
 
     res.json({

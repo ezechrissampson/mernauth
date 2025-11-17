@@ -81,7 +81,6 @@ const Profile = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           <FaUserShield className="me-2" />
@@ -103,7 +102,6 @@ const Profile = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="container py-5">
         <div
           className="card shadow-lg p-4 mx-auto"
@@ -113,7 +111,7 @@ const Profile = () => {
             Admin Account Settings
           </h3>
 
-          {/* Username + Email */}
+
           <form onSubmit={handleUpdate}>
             <div className="row g-3">
               <div className="col-md-6">
@@ -151,7 +149,7 @@ const Profile = () => {
             {error && <div className="alert alert-danger mt-3">{error}</div>}
           </form>
 
-          {/* PIN Section */}
+
           <div className="mt-5">
             <h5 className="fw-bold text-secondary mb-3">
               <FaKey className="me-2" />
