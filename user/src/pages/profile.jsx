@@ -4,13 +4,28 @@ import { FaUserCircle, FaLock } from "react-icons/fa";
 import axios from "axios";
 
 const Profile = () => {
+  const [user, setUser] = useState(null);
 
-  const [user, setUser] = useState([]);
+  // name & email
+  const [profileForm, setProfileForm] = useState({ name: "", email: "" });
 
+  // password form
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [imageMessage, setImageMessage] = useState("");
+  const [imageError, setImageError] = useState("");
 
-    useEffect(() => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
     if (!token) {
       window.location.href = "/login";
       return;
@@ -20,7 +35,13 @@ const Profile = () => {
       .get("http://localhost:5000/api/auth/profile", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setUser(res.data))
+      .then((res) => {
+        setUser(res.data);
+        setProfileForm({
+          name: res.data.name || "",
+          email: res.data.email || "",
+        });
+      })
       .catch(() => {
         localStorage.removeItem("token");
         window.location.href = "/login";
@@ -29,25 +50,99 @@ const Profile = () => {
 
   if (!user) return <div className="text-center mt-5">Loading...</div>;
 
-  const handleImageChange = (e) => {
+  // ========= IMAGE =========
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setUser({ ...user, profilePic: URL.createObjectURL(file) });
+    if (!file) return;
+
+    setImageMessage("");
+    setImageError("");
+
+    // show preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setUser((prev) => ({ ...prev, profilePic: previewUrl }));
+
+    // send to backend (if you have endpoint for it)
+    try {
+      const formData = new FormData();
+      formData.append("profilePic", file);
+
+      const res = await axios.put(
+        "http://localhost:5000/api/auth/profile/image",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setUser(res.data);
+      setImageMessage("Profile picture updated successfully");
+    } catch (err) {
+      setImageError(err.response?.data?.message || "Failed to update image");
     }
   };
 
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+  // ========= PROFILE (name + email) =========
+  const handleProfileChange = (e) => {
+    setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    alert("Profile updated successfully!");
+    setProfileMessage("");
+    setProfileError("");
+
+    try {
+      const res = await axios.put(
+        "http://localhost:5000/api/auth/profile",
+        profileForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setUser(res.data);
+      setProfileMessage("Profile updated successfully");
+    } catch (err) {
+      setProfileError(err.response?.data?.message || "Update failed");
+    }
   };
 
-  const handlePasswordUpdate = (e) => {
+  // ========= PASSWORD =========
+  const handlePasswordChange = (e) => {
+    setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
+  };
+
+  const handlePasswordUpdate = async (e) => {
     e.preventDefault();
-    alert("Password changed successfully!");
+    setPasswordMessage("");
+    setPasswordError("");
+
+    const { oldPassword, newPassword, confirmPassword } = passwordForm;
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirm password do not match");
+      return;
+    }
+
+    try {
+      await axios.put(
+        "http://localhost:5000/api/auth/profile/password",
+        { oldPassword, newPassword, confirmPassword },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setPasswordMessage("Password updated successfully");
+      setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err) {
+      setPasswordError(
+        err.response?.data?.message || "Failed to update password"
+      );
+    }
   };
 
   return (
@@ -58,26 +153,42 @@ const Profile = () => {
           User Profile
         </a>
         <div className="ms-auto">
-          <button className="btn btn-outline-light btn-sm"
-          onClick={() => {
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={() => {
               localStorage.removeItem("token");
               window.location.href = "/login";
             }}
-          
-          >Logout</button>
-          <Link to="/dashboard" className="btn btn-outline-light btn-sm ms-2">Dashboard</Link>
+          >
+            Logout
+          </button>
+          <Link
+            to="/dashboard"
+            className="btn btn-outline-light btn-sm ms-2"
+          >
+            Dashboard
+          </Link>
         </div>
       </nav>
 
       {/* Main Content */}
       <div className="container py-5">
-        <div className="card shadow-lg p-4 mx-auto" style={{ maxWidth: "700px" }}>
+        <div
+          className="card shadow-lg p-4 mx-auto"
+          style={{ maxWidth: "700px" }}
+        >
           <h3 className="fw-bold text-center text-primary mb-4">My Profile</h3>
 
+          {/* Profile Image */}
           <div className="text-center mb-4">
             {user.profilePic ? (
               <img
-                src={user.profilePic}
+                  src={
+                  user.profilePic?.startsWith("http")
+                  ? user.profilePic
+                  : `http://localhost:5000/${user.profilePic}`
+  }
+
                 alt="Profile"
                 className="rounded-circle mb-3"
                 style={{ width: "110px", height: "110px", objectFit: "cover" }}
@@ -96,19 +207,25 @@ const Profile = () => {
                 />
               </label>
             </div>
+            {imageMessage && (
+              <div className="alert alert-success mt-3">{imageMessage}</div>
+            )}
+            {imageError && (
+              <div className="alert alert-danger mt-3">{imageError}</div>
+            )}
           </div>
 
           {/* Profile Update */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleProfileUpdate}>
             <div className="row g-3">
               <div className="col-md-6">
                 <label className="form-label fw-semibold">Full Name</label>
                 <input
                   type="text"
                   className="form-control"
-                  name="fullName"
-                  value={user.name}
-                  onChange={handleChange}
+                  name="name"
+                  value={profileForm.name}
+                  onChange={handleProfileChange}
                 />
               </div>
 
@@ -118,7 +235,8 @@ const Profile = () => {
                   type="email"
                   className="form-control"
                   name="email"
-                  value={user.email}
+                  value={profileForm.email}
+                  onChange={handleProfileChange}
                 />
               </div>
             </div>
@@ -128,6 +246,14 @@ const Profile = () => {
                 Save Changes
               </button>
             </div>
+            {profileMessage && (
+              <div className="alert alert-success mt-3">
+                {profileMessage}
+              </div>
+            )}
+            {profileError && (
+              <div className="alert alert-danger mt-3">{profileError}</div>
+            )}
           </form>
 
           {/* Password Section */}
@@ -140,33 +266,42 @@ const Profile = () => {
             <form onSubmit={handlePasswordUpdate}>
               <div className="row g-3">
                 <div className="col-md-4">
-                  <label className="form-label fw-semibold">Old Password</label>
+                  <label className="form-label fw-semibold">
+                    Old Password
+                  </label>
                   <input
                     type="password"
                     className="form-control"
                     name="oldPassword"
-                    value={user.oldPassword}
-                    onChange={handleChange}
+                    value={passwordForm.oldPassword}
+                    onChange={handlePasswordChange}
+                    required
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fw-semibold">New Password</label>
+                  <label className="form-label fw-semibold">
+                    New Password
+                  </label>
                   <input
                     type="password"
                     className="form-control"
                     name="newPassword"
-                    value={user.newPassword}
-                    onChange={handleChange}
+                    value={passwordForm.newPassword}
+                    onChange={handlePasswordChange}
+                    required
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fw-semibold">Confirm Password</label>
+                  <label className="form-label fw-semibold">
+                    Confirm Password
+                  </label>
                   <input
                     type="password"
                     className="form-control"
                     name="confirmPassword"
-                    value={user.confirmPassword}
-                    onChange={handleChange}
+                    value={passwordForm.confirmPassword}
+                    onChange={handlePasswordChange}
+                    required
                   />
                 </div>
               </div>
@@ -177,6 +312,15 @@ const Profile = () => {
                 </button>
               </div>
             </form>
+
+            {passwordMessage && (
+              <div className="alert alert-success mt-3">
+                {passwordMessage}
+              </div>
+            )}
+            {passwordError && (
+              <div className="alert alert-danger mt-3">{passwordError}</div>
+            )}
           </div>
         </div>
       </div>
