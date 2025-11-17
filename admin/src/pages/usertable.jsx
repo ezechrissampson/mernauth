@@ -84,10 +84,26 @@ const openEditModal = (user) => {
                 Users.map((user, i) => (
               <tr key={user._id}>
               <td>{i + 1}</td>
-              <td>{user.name}</td>
-              <td>{user.username}</td>
-              <td>{user.email}</td>
-             < td>{new Date(user.createdAt).toLocaleString()}</td>
+              <td>
+       {user.profilePic ? (
+        <img
+        src={
+        user.profilePic?.startsWith("http")
+        ? user.profilePic
+        : `http://localhost:5000/${user.profilePic}`
+        }
+                 
+        alt="Profile"
+        className="rounded-circle mb-3"
+        style={{ width: "30px", height: "30px", objectFit: "cover", marginTop:"10px", marginRight:"5px" }}
+        />
+        ) : (
+        <FaUserCircle className="text-primary mb-3" size={10} />
+        )}
+      {user.name}</td>
+      <td>{user.username}</td>
+      <td>{user.email}</td>
+      < td>{new Date(user.createdAt).toLocaleString()}</td>
                     <td className="text-center">
                       <button className="btn btn-sm btn-outline-primary me-2"
                       data-bs-toggle="modal"

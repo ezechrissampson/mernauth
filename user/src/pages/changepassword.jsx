@@ -37,7 +37,6 @@ const Changepassword = () => {
       return;
     }
 
-    // TODO: Send request to backend: POST /api/auth/change-password
     console.log("Password change request:", formData);
 
     setMessage("Your password has been successfully updated!");

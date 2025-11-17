@@ -6,10 +6,10 @@ import axios from "axios";
 const Profile = () => {
   const [user, setUser] = useState(null);
 
-  // name & email
+
   const [profileForm, setProfileForm] = useState({ name: "", email: "" });
 
-  // password form
+
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
     newPassword: "",
@@ -50,7 +50,7 @@ const Profile = () => {
 
   if (!user) return <div className="text-center mt-5">Loading...</div>;
 
-  // ========= IMAGE =========
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -58,7 +58,7 @@ const Profile = () => {
     setImageMessage("");
     setImageError("");
 
-    // show preview immediately
+
     const previewUrl = URL.createObjectURL(file);
     setUser((prev) => ({ ...prev, profilePic: previewUrl }));
 
@@ -85,7 +85,7 @@ const Profile = () => {
     }
   };
 
-  // ========= PROFILE (name + email) =========
+
   const handleProfileChange = (e) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
   };
@@ -110,7 +110,7 @@ const Profile = () => {
     }
   };
 
-  // ========= PASSWORD =========
+
   const handlePasswordChange = (e) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
   };
@@ -147,7 +147,7 @@ const Profile = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      {/* Navbar */}
+
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           User Profile
@@ -171,7 +171,7 @@ const Profile = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
+   
       <div className="container py-5">
         <div
           className="card shadow-lg p-4 mx-auto"
@@ -179,7 +179,7 @@ const Profile = () => {
         >
           <h3 className="fw-bold text-center text-primary mb-4">My Profile</h3>
 
-          {/* Profile Image */}
+ 
           <div className="text-center mb-4">
             {user.profilePic ? (
               <img
@@ -215,7 +215,7 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Profile Update */}
+     
           <form onSubmit={handleProfileUpdate}>
             <div className="row g-3">
               <div className="col-md-6">
@@ -256,7 +256,6 @@ const Profile = () => {
             )}
           </form>
 
-          {/* Password Section */}
           <div className="mt-5">
             <h5 className="fw-bold text-secondary mb-3">
               <FaLock className="me-2" />

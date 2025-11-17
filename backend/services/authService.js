@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { generateToken } from "../utils/generateToken.js";
 
-// Signup user
+
 export const registerUser = async (data) => {
   const { name, username, email, password } = data;
 
@@ -30,7 +30,7 @@ export const registerUser = async (data) => {
   };
 };
 
-// Login user
+
 export const loginUser = async (emailOrUsername, password) => {
   const user = await User.findOne({
     $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
@@ -49,7 +49,7 @@ export const loginUser = async (emailOrUsername, password) => {
   };
 };
 
-// Get user profile
+
 export const getUserProfile = async (userId) => {
   const user = await User.findById(userId).select("-password");
   if (!user) throw new Error("User not found");

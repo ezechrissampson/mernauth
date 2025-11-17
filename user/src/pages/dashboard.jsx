@@ -8,7 +8,6 @@ const Dashboard = () => {
 
   return (
     <div className="vh-100 bg-light">
-      {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           MERN Auth Dashboard
@@ -21,7 +20,6 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      {/* Dashboard Content */}
       <div className="container mt-5 text-center">
         <h2 className="fw-bold text-primary">
           Welcome, Ezechrissam

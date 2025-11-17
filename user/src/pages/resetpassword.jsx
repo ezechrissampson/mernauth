@@ -18,7 +18,6 @@ const Resetpassword = () => {
 
     setError("");
     console.log("New password set:", password);
-    // TODO: Send PUT/PATCH request to backend (e.g. /api/auth/reset-password/:token)
     setSuccess(true);
   };
 

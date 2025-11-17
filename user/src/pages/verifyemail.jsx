@@ -7,10 +7,9 @@ const Verifyemail = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: send OTP to backend for verification (POST /api/auth/verify-otp)
     console.log("Entered OTP:", otp);
 
-    // Simulate success
+    
     setVerified(true);
   };
 
