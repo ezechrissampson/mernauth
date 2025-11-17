@@ -20,9 +20,9 @@ const Home = () => {
           <Link to="/signup" className="btn btn-outline-primary mx-2">
             Register
           </Link>
-          <Link to="/admin" className="btn btn-dark mx-2">
+          <a href=" http://localhost:5174/admin/" className="btn btn-dark mx-2">
             Admin Dashboard
-          </Link>
+          </a>
         </div>
       </div>
     </div>
