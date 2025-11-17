@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios"
+import { FaUserCircle } from "react-icons/fa";
 
 const Usertable = () => {
 
 const [Users, setUser] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [updatedUser, setUpdatedUser] = useState({ name: "", username: "", email: "" });
+  const [updatedUser, setUpdatedUser] = useState({ name: "", username: "", email: "", });
 
 
 useEffect(() => {
@@ -75,6 +75,7 @@ const openEditModal = (user) => {
                 <th>Username</th>
                 <th>Email</th>
                 <th>Date Joined</th>
+                <th>Status</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
@@ -98,12 +99,19 @@ const openEditModal = (user) => {
         style={{ width: "30px", height: "30px", objectFit: "cover", marginTop:"10px", marginRight:"5px" }}
         />
         ) : (
-        <FaUserCircle className="text-primary mb-3" size={10} />
+        <FaUserCircle className="text-primary mb-3 me-1 mt-1" size={30} />
         )}
       {user.name}</td>
       <td>{user.username}</td>
       <td>{user.email}</td>
-      < td>{new Date(user.createdAt).toLocaleString()}</td>
+      <td>{new Date(user.createdAt).toLocaleString()}</td>
+      <td>
+      {user.isVerified ? (
+      <span className="badge bg-success">Verified</span>
+      ) : (
+      <span className="badge bg-secondary">Pending</span>
+      )}
+</td>
                     <td className="text-center">
                       <button className="btn btn-sm btn-outline-primary me-2"
                       data-bs-toggle="modal"

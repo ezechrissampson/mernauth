@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import axios from "axios";
 
 const Login = () => {
   const [formData, setForm] = useState({ emailOrUsername: "", password: "" });
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...formData, [e.target.name]: e.target.value });
@@ -13,16 +17,39 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      setLoading(true);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        formData
+      );
+
       localStorage.setItem("token", res.data.token);
       setMessage("Login successful!");
-      window.location.href = "/profile";
+
+      navigate("/profile");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Login failed");
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || "Login failed";
+
+
+      if (status === 401 && msg.toLowerCase().includes("verify")) {
+        setError(msg);
+
+
+        navigate(
+          `/verify-email?email=${encodeURIComponent(formData.emailOrUsername)}`
+        );
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
 
   const handleGoogleAuth = () => {
     console.log("Google Auth Clicked");
@@ -42,41 +69,51 @@ const Login = () => {
           Login to access your account and dashboard
         </p>
 
-        {message && <div className="alert alert-info">{message}</div>}
+        {message && <div className="alert alert-success">{message}</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label">Email or Username</label>
-              <input
-                type="text"
-                name="emailOrUsername"
-                placeholder="Enter username or email"
-                className="form-control"
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="mb-3">
+            <label className="form-label">Email or Username</label>
+            <input
+              type="text"
+              name="emailOrUsername"
+              placeholder="Enter username or email"
+              className="form-control"
+              value={formData.emailOrUsername}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="mb-3">
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter password"
-                className="form-control"
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <div className="mb-3">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter password"
+              className="form-control"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
           <div className="text-end mb-4">
-            <Link to="/forgot-password" className="text-decoration-none text-primary fw-semibold">
+            <Link
+              to="/forgot-password"
+              className="text-decoration-none text-primary fw-semibold"
+            >
               Forgot password?
             </Link>
           </div>
 
-          <button type="submit" className="btn btn-primary w-100 mb-3">
-            Login
+          <button
+            type="submit"
+            className="btn btn-primary w-100 mb-3"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
 
           <div className="text-center text-muted my-2">or continue with</div>
