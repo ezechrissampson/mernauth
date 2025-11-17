@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaGoogle, FaApple } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import axios from "axios"
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -12,25 +12,48 @@ const Signup = () => {
     confirmPassword: "",
   });
 
-  
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const [message, setMessage] = useState("");
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("");
+    setError("");
+
     if (formData.password !== formData.confirmPassword) {
-      return setMessage("Passwords do not match");
+      return setError("Passwords do not match");
     }
 
     try {
-       await axios.post("http://localhost:5000/api/auth/signup", formData);
-      setMessage("Signup successful! You can now login.");
+      setLoading(true);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/signup",
+        {
+          name: formData.name,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }
+      );
+
+      setMessage(
+        res.data?.message ||
+          "Signup successful! Please check your email for the verification code."
+      );
+
+   
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
-      setMessage(err.response?.data?.message || "Signup failed");
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,16 +68,18 @@ const Signup = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center bg-light">
+    <div className="d-flex justify-content-center align-items-center bg-light" style={{ minHeight: "100vh" }}>
       <div className="card shadow-lg p-4" style={{ width: "400px" }}>
         <h2 className="text-center mb-3 text-primary fw-bold">Create Account</h2>
         <p className="text-center text-muted mb-4">
           Sign up to access your dashboard and manage your account
         </p>
-        {message && <div className="alert alert-info">{message}</div>}
-        <form onSubmit={handleSubmit}>
 
-        <div className="mb-3">
+        {message && <div className="alert alert-success">{message}</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
             <label className="form-label fw-semibold">Full Name</label>
             <input
               type="text"
@@ -107,18 +132,24 @@ const Signup = () => {
           </div>
 
           <div className="mb-3">
-              <label className="form-label">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                className="form-control"
-                onChange={handleChange}
-                required
-              />
-           </div>
+            <label className="form-label fw-semibold">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              className="form-control"
+              placeholder="Confirm password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <button type="submit" className="btn btn-primary w-100 mb-3">
-            Sign Up
+          <button
+            type="submit"
+            className="btn btn-primary w-100 mb-3"
+            disabled={loading}
+          >
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
 
           <div className="text-center text-muted my-2">or continue with</div>
