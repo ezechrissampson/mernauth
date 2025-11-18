@@ -1,9 +1,25 @@
 import React from "react";
+import { useEffect, useState } from "react";
 import { FaCode, FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import axios from "axios";
+
+ 
 
 
 const Dashboard = () => {
+ const [user, setUser] = useState(null); 
+ const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setUser(res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
   
 
   return (
@@ -16,13 +32,18 @@ const Dashboard = () => {
           <Link to="/profile" className="btn btn-outline-light btn-sm me-2">
             <FaUser className="me-1" /> Profile
           </Link>
-          <button className="btn btn-outline-light btn-sm">Logout</button>
+          <button className="btn btn-outline-light btn-sm"
+              onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/login";
+            }}>Logout
+            </button>
         </div>
       </nav>
 
       <div className="container mt-5 text-center">
         <h2 className="fw-bold text-primary">
-          Welcome, Ezechrissam
+          {user ? `Welcome ${user.username}` : "Loading..."}
         </h2>
         <p className="text-muted mb-4">
           Build, manage, and explore — this project showcases a full MERN stack
