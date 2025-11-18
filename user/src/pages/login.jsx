@@ -27,25 +27,28 @@ const Login = () => {
         formData
       );
 
+      // 🔹 If backend says user needs verification
+      if (res.data.needsVerification) {
+        const realEmail = res.data.email;
+        const maskedEmail = res.data.maskedEmail;
+
+        // store REAL email for verify-email page
+        localStorage.setItem("verifyEmail", realEmail);
+
+        // show masked email in URL for UI
+        navigate(
+          `/verify-email?email=${encodeURIComponent(maskedEmail)}`
+        );
+        return;
+      }
+
+      // 🔹 Normal successful login
       localStorage.setItem("token", res.data.token);
       setMessage("Login successful!");
-
       navigate("/profile");
     } catch (err) {
-      const status = err.response?.status;
       const msg = err.response?.data?.message || "Login failed";
-
-
-      if (status === 401 && msg.toLowerCase().includes("verify")) {
-        setError(msg);
-
-
-        navigate(
-          `/verify-email?email=${encodeURIComponent(formData.emailOrUsername)}`
-        );
-      } else {
-        setError(msg);
-      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -53,12 +56,10 @@ const Login = () => {
 
   const handleGoogleAuth = () => {
     console.log("Google Auth Clicked");
-    // TODO: Integrate Google OAuth
   };
 
   const handleAppleAuth = () => {
     console.log("Apple Auth Clicked");
-    // TODO: Integrate Apple OAuth
   };
 
   return (
