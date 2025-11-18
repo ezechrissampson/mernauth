@@ -14,19 +14,20 @@ const Verifyemail = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  
+  // from URL – masked email only for display
   const searchParams = new URLSearchParams(location.search);
-  const email = searchParams.get("email");
+  const maskedEmail = searchParams.get("email");
 
-
+  // from localStorage – REAL email to send to backend
+  const realEmail = localStorage.getItem("verifyEmail");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
 
-    if (!email) {
-      setError("Missing email in URL. Please sign up again.");
+    if (!realEmail) {
+      setError("Missing email. Please sign up or login again.");
       return;
     }
 
@@ -40,13 +41,16 @@ const Verifyemail = () => {
       const res = await axios.post(
         "http://localhost:5000/api/auth/verify-email",
         {
-          email,
+          email: realEmail,  // IMPORTANT: real email, not maskedEmail
           code: otp,
         }
       );
 
       setMessage(res.data?.message || "Email verified successfully!");
       setVerified(true);
+
+      // clear localstorage key after success
+      localStorage.removeItem("verifyEmail");
 
       setTimeout(() => {
         navigate("/login");
@@ -63,8 +67,8 @@ const Verifyemail = () => {
     setMessage("");
     setError("");
 
-    if (!email) {
-      setError("Missing email in URL. Please sign up again.");
+    if (!realEmail) {
+      setError("Missing email. Please sign up or login again.");
       return;
     }
 
@@ -72,7 +76,7 @@ const Verifyemail = () => {
       setResendLoading(true);
       const res = await axios.post(
         "http://localhost:5000/api/auth/resend-code",
-        { email }
+        { email: realEmail }  // again: real email
       );
 
       setMessage(res.data?.message || "New code sent to your email.");
@@ -89,10 +93,10 @@ const Verifyemail = () => {
         {!verified ? (
           <>
             <h3 className="text-primary fw-bold mb-3">Verify Your Email</h3>
-            <p className="text-muted mb-2">
-              We sent a verification code to:
+            <p className="text-muted mb-2">We sent a verification code to:</p>
+            <p className="fw-semibold mb-4">
+              {maskedEmail || realEmail || "your email"}
             </p>
-            <p className="fw-semibold mb-4">{ email || "your email"}</p>
 
             {message && <div className="alert alert-success">{message}</div>}
             {error && <div className="alert alert-danger">{error}</div>}

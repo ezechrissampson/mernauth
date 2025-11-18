@@ -32,18 +32,25 @@ export const resendCode = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const data = await loginUser(req.body);
-    res.json(data);
-  } catch (err) {
-    console.error("Login error:", err);
+    const { emailOrUsername, password } = req.body;
 
-    if (err.code === "NOT_VERIFIED") {
-      return res.status(401).json({ message: err.message });
+    const data = await loginUser(emailOrUsername, password);
+
+    // if not verified
+    if (data.needsVerification) {
+      return res.status(200).json(data);
     }
 
-    res.status(400).json({ message: err.message || "Server error during login" });
+    // verified → normal login
+    return res.json(data);
+  } catch (err) {
+    console.error("Login error:", err);
+    res
+      .status(400)
+      .json({ message: err.message || "Server error during login" });
   }
 };
+
 
 export const profile = async (req, res) => {
   try {
@@ -56,13 +63,16 @@ export const profile = async (req, res) => {
 
 export const verifyEmail = async (req, res) => {
   try {
-    const data = await verifyUserEmail(req.body);
+    const data = await verifyUserEmail(req.body); // { email, code }
     res.json(data);
   } catch (err) {
     console.error("Verify email error:", err);
-    res.status(400).json({ message: err.message || "Server error verifying email" });
+    res
+      .status(400)
+      .json({ message: err.message || "Server error verifying email" });
   }
 };
+
 
 export const forgotPassword = async (req, res) => {
   try {

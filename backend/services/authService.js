@@ -9,6 +9,12 @@ const generateVerificationCode = () => {
   return Math.floor(10000 + Math.random() * 90000).toString();
 };
 
+const maskEmail = (email) => {
+  const [name, domain] = email.split("@");
+  if (!domain) return email;
+  const visible = name.slice(0, 3); // first 3 chars
+  return `${visible}***@${domain}`;
+};
 
 export const registerUser = async ({ name, username, email, password }) => {
   if (!name || !username || !email || !password) {
@@ -83,31 +89,48 @@ export const resendVerificationCode = async (email) => {
 };
 
 
-export const loginUser = async ({ emailOrUsername, password }) => {
-  // you said your login uses either email or username
+export const loginUser = async (emailOrUsername, password) => {
   const user = await User.findOne({
     $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
   });
-
   if (!user) throw new Error("Invalid credentials");
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
+  // if not verified → send code
   if (!user.isVerified) {
-    const err = new Error("Please verify your email to login");
-    err.code = "NOT_VERIFIED";
-    throw err;
+    const code = generateVerificationCode();
+    user.verificationCode = code;
+    user.verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+
+    await sendEmail(
+      user.email,
+      "Verify your email",
+      `Your verification code is: ${code}`,
+      `<p>Your verification code is:</p><h2>${code}</h2>`
+    );
+
+    return {
+      needsVerification: true,
+      email: user.email,              // REAL email
+      maskedEmail: maskEmail(user.email), // eze***@gmail.com
+      message: "Email not verified. Verification code sent.",
+    };
   }
 
+  // if verified → normal login
   return {
     _id: user._id,
     name: user.name,
     username: user.username,
     email: user.email,
     token: generateToken(user._id),
+    needsVerification: false,
   };
 };
+
 
 
 export const getUserProfile = async (userId) => {
@@ -143,7 +166,6 @@ export const verifyUserEmail = async ({ email, code }) => {
 
   await user.save();
 
-  // you can return token here too if you want auto-login after verify
   return {
     message: "Email verified successfully. You can now log in.",
     _id: user._id,
@@ -153,6 +175,7 @@ export const verifyUserEmail = async ({ email, code }) => {
     isVerified: user.isVerified,
   };
 };
+
 
 
 export const forgotPasswordService = async (email) => {
