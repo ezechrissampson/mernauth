@@ -4,7 +4,10 @@ import {
   getUserProfile,
   verifyUserEmail,
   resendVerificationCode,
+  forgotPasswordService,
+  resetPasswordService
 } from "../services/authService.js";
+
 
 export const signup = async (req, res) => {
   try {
@@ -58,5 +61,41 @@ export const verifyEmail = async (req, res) => {
   } catch (err) {
     console.error("Verify email error:", err);
     res.status(400).json({ message: err.message || "Server error verifying email" });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    await forgotPasswordService(email);
+
+    // Always generic for security
+    res.json({
+      message: "If that email exists, a reset link has been sent.",
+    });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res
+      .status(500)
+      .json({ message: err.message || "Server error sending reset link" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    await resetPasswordService(token, password, confirmPassword);
+
+    res.json({
+      message: "Password has been reset successfully. You can log in now.",
+    });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res
+      .status(400)
+      .json({ message: err.message || "Server error resetting password" });
   }
 };

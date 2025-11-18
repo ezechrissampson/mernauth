@@ -18,6 +18,8 @@ const Verifyemail = () => {
   const searchParams = new URLSearchParams(location.search);
   const email = searchParams.get("email");
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -90,7 +92,7 @@ const Verifyemail = () => {
             <p className="text-muted mb-2">
               We sent a verification code to:
             </p>
-            <p className="fw-semibold mb-4">{email || "your email"}</p>
+            <p className="fw-semibold mb-4">{ email || "your email"}</p>
 
             {message && <div className="alert alert-success">{message}</div>}
             {error && <div className="alert alert-danger">{error}</div>}

@@ -1,14 +1,15 @@
-// services/authService.js
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import { sendVerificationEmail } from "../utils/sendEailer.js";
+import crypto from "crypto"
+import { sendEmail } from "../utils/sendEailer.js";
 import { generateToken } from "../utils/generateToken.js";
+
 
 const generateVerificationCode = () => {
   return Math.floor(10000 + Math.random() * 90000).toString();
 };
 
-// SIGNUP / REGISTER
+
 export const registerUser = async ({ name, username, email, password }) => {
   if (!name || !username || !email || !password) {
     throw new Error("All fields are required");
@@ -40,7 +41,10 @@ export const registerUser = async ({ name, username, email, password }) => {
   });
 
   // send verification mail
-  await sendVerificationEmail(newUser.email, code);
+  await sendEmail(newUser.email,   
+  "Verify your email",
+  `Your verification code is: ${code}`,
+  `<p>Your verification code is:</p><h2>${code}</h2>`);
 
   // you can return token or not at signup – here I’ll include it like you asked
   return {
@@ -55,7 +59,7 @@ export const registerUser = async ({ name, username, email, password }) => {
   };
 };
 
-// RESEND CODE
+
 export const resendVerificationCode = async (email) => {
   if (!email) throw new Error("Email is required");
 
@@ -70,12 +74,15 @@ export const resendVerificationCode = async (email) => {
   user.verificationCodeExpires = expires;
   await user.save();
 
-  await sendVerificationEmail(user.email, code);
+  await sendEmail(user.email,   
+  "Verify your email",
+  `Your verification code is: ${code}`,
+  `<p>Your verification code is:</p><h2>${code}</h2>`);
 
   return { message: "Verification code resent to your email" };
 };
 
-// LOGIN
+
 export const loginUser = async ({ emailOrUsername, password }) => {
   // you said your login uses either email or username
   const user = await User.findOne({
@@ -102,14 +109,14 @@ export const loginUser = async ({ emailOrUsername, password }) => {
   };
 };
 
-// PROFILE
+
 export const getUserProfile = async (userId) => {
   const user = await User.findById(userId).select("-password");
   if (!user) throw new Error("User not found");
   return user;
 };
 
-// VERIFY EMAIL
+
 export const verifyUserEmail = async ({ email, code }) => {
   if (!email || !code) throw new Error("Email and code are required");
 
@@ -145,4 +152,72 @@ export const verifyUserEmail = async ({ email, code }) => {
     email: user.email,
     isVerified: user.isVerified,
   };
+};
+
+
+export const forgotPasswordService = async (email) => {
+  if (!email) throw new Error("Email is required");
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    // For security, we pretend it worked
+    return;
+  }
+
+  // 1) generate token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  // 2) hash token to store in DB
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // 3) set fields on user
+  user.resetPasswordToken = hashedToken;
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  await user.save();
+
+  // 4) create reset URL for frontend
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+  // 5) send email
+  const html = `
+    <p>You requested to reset your password.</p>
+    <p>Click the link below to set a new password (valid for 1 hour):</p>
+    <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+    <p>If you did not request this, just ignore this email.</p>
+  `;
+
+  await sendEmail(user.email, "Password Reset Request", html);
+};
+
+export const resetPasswordService = async (token, password, confirmPassword) => {
+  if (!password || !confirmPassword) {
+    throw new Error("All fields are required");
+  }
+  if (password !== confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  // hash token from URL (same as we stored)
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  // find user with valid, non-expired token
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new Error("Invalid or expired password reset token");
+  }
+
+  // hash new password and save
+  const hashedPassword = await bcrypt.hash(password, 10);
+  user.password = hashedPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+
+  await user.save();
 };
