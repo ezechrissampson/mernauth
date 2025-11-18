@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 
 const Resetpassword = () => {
+  const { token } = useParams(); // get token from /reset-password/:token
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -16,9 +17,19 @@ const Resetpassword = () => {
       return;
     }
 
-    setError("");
-    console.log("New password set:", password);
-    setSuccess(true);
+    try {
+      const res = await axios.post(
+        `http://localhost:5000/api/auth/reset-password/${token}`,
+        { password, confirmPassword }
+      );
+
+      setError("");
+      setSuccess(true);
+      console.log(res.data.message);
+    } catch (err) {
+      setSuccess(false);
+      setError(err.response?.data?.message || "Reset failed, try again.");
+    }
   };
 
   return (
@@ -65,9 +76,9 @@ const Resetpassword = () => {
 
             <p className="mt-4 text-muted">
               Remember your password?{" "}
-              <a href="/login" className="text-decoration-none fw-semibold">
+              <Link to="/login" className="text-decoration-none fw-semibold">
                 Back to Login
-              </a>
+              </Link>
             </p>
           </>
         ) : (

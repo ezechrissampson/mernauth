@@ -1,14 +1,29 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Forgotpassword = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Password reset requested for:", email);
-    setSubmitted(true);
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/forgot-password",
+        { email }
+      );
+      setMessage(res.data.message || "If that email exists, a reset link has been sent.");
+      setSubmitted(true);
+    } catch (err) {
+      setMessage(
+        err.response?.data?.message ||
+          "Something went wrong, please try again."
+      );
+      setSubmitted(true); // still show the “check email” state
+    }
   };
 
   return (
@@ -51,8 +66,9 @@ const Forgotpassword = () => {
               <i className="bi bi-envelope-check fs-1"></i>
             </div>
             <h4 className="fw-bold text-success mb-2">Check Your Email</h4>
+            {message && <p className="text-muted mb-2">{message}</p>}
             <p className="text-muted mb-4">
-              We’ve sent a password reset link to <strong>{email}</strong>.
+              We’ve sent a password reset link to <strong>{email}</strong> (if it exists).
             </p>
             <Link to="/login" className="btn btn-success w-100">
               Return to Login
