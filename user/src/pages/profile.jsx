@@ -145,7 +145,7 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
   const token = localStorage.getItem("token");
 
   try {
@@ -170,14 +170,13 @@ const Profile = () => {
           User Profile
         </a>
         <div className="ms-auto">
-          <button
-            className="btn btn-outline-light btn-sm"
-            onClick={() => {
-              handleLogout
-            }}
-          >
-            Logout
-          </button>
+        <button
+        className="btn btn-outline-light btn-sm"
+        onClick={() => handleLogout()}
+        >
+        Logout
+        </button>
+
           <Link
             to="/dashboard"
             className="btn btn-outline-light btn-sm ms-2"
