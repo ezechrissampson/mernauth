@@ -34,14 +34,17 @@ export const login = async (req, res) => {
   try {
     const { emailOrUsername, password } = req.body;
 
-    const data = await loginUser(emailOrUsername, password);
+    // simple userAgent string from headers for logging
+    const userAgent = req.headers["user-agent"] || "unknown";
+
+    const data = await loginUser(emailOrUsername, password, userAgent);
 
     // if not verified
     if (data.needsVerification) {
       return res.status(200).json(data);
     }
 
-    // verified → normal login
+    // verified → normal login with session token
     return res.json(data);
   } catch (err) {
     console.error("Login error:", err);
@@ -107,5 +110,23 @@ export const resetPassword = async (req, res) => {
     res
       .status(400)
       .json({ message: err.message || "Server error resetting password" });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    let token = null;
+
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+
+    await destroySessionByToken(token);
+
+    res.json({ message: "Logged out successfully" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    res.status(500).json({ message: "Server error during logout" });
   }
 };
