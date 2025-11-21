@@ -1,7 +1,10 @@
+
+
 import React, { useState } from "react";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +18,7 @@ const Signup = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,6 +26,7 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ---------- Normal email/password signup ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -33,22 +38,19 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        {
-          name: formData.name,
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const res = await axios.post("http://localhost:5000/api/auth/signup", {
+        name: formData.name,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
 
       setMessage(
         res.data?.message ||
           "Signup successful! Please check your email for the verification code."
       );
 
-   
+      // go to verify page with email
       navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
@@ -57,20 +59,54 @@ const Signup = () => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    console.log("Google Auth Clicked");
-    // TODO: Integrate Google OAuth here
-  };
+  // ---------- Google signup/login ----------
+  const googleLogin = useGoogleLogin({
+    flow: "implicit", // using access_token flow
+    onSuccess: async (tokenResponse) => {
+      try {
+        setGoogleLoading(true);
+        setError("");
+        setMessage("");
+
+        const accessToken = tokenResponse.access_token;
+
+        const res = await axios.post(
+          "http://localhost:5000/api/auth/google",
+          { accessToken }
+        );
+
+        // store your own JWT from backend
+        localStorage.setItem("token", res.data.token);
+        setMessage("Signed up / logged in with Google successfully!");
+        navigate("/profile");
+      } catch (err) {
+        console.error("Google auth error:", err);
+        setError(
+          err.response?.data?.message || "Google authentication failed"
+        );
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Google authentication was cancelled or failed.");
+    },
+  });
 
   const handleAppleAuth = () => {
     console.log("Apple Auth Clicked");
-    // TODO: Integrate Apple OAuth here
+    // implement later
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center bg-light" style={{ minHeight: "100vh" }}>
+    <div
+      className="d-flex justify-content-center align-items-center bg-light"
+      style={{ minHeight: "100vh" }}
+    >
       <div className="card shadow-lg p-4" style={{ width: "400px" }}>
-        <h2 className="text-center mb-3 text-primary fw-bold">Create Account</h2>
+        <h2 className="text-center mb-3 text-primary fw-bold">
+          Create Account
+        </h2>
         <p className="text-center text-muted mb-4">
           Sign up to access your dashboard and manage your account
         </p>
@@ -151,26 +187,30 @@ const Signup = () => {
           >
             {loading ? "Creating account..." : "Sign Up"}
           </button>
-
-          <div className="text-center text-muted my-2">or continue with</div>
-
-          <div className="d-flex justify-content-center">
-            <button
-              type="button"
-              className="btn btn-outline-danger me-2"
-              onClick={handleGoogleAuth}
-            >
-              <FaGoogle className="me-2" /> Google
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-dark"
-              onClick={handleAppleAuth}
-            >
-              <FaApple className="me-2" /> Apple
-            </button>
-          </div>
         </form>
+
+        <div className="text-center text-muted my-2">or continue with</div>
+
+        <div className="d-flex justify-content-center">
+          {/* Google button with your design */}
+          <button
+            type="button"
+            className="btn btn-outline-danger me-2"
+            onClick={() => googleLogin()}
+            disabled={googleLoading}
+          >
+            <FaGoogle className="me-2" />
+            {googleLoading ? "Connecting..." : "Google"}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-outline-dark"
+            onClick={handleAppleAuth}
+          >
+            <FaApple className="me-2" /> Apple
+          </button>
+        </div>
 
         <p className="text-center mt-4">
           Already have an account?{" "}

@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto"
+import { OAuth2Client } from "google-auth-library";
 import { sendEmail } from "../utils/sendEailer.js";
 import { generateToken } from "../utils/generateToken.js";
 import {
@@ -9,6 +10,8 @@ import {
 } from "../services/sessionService.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const maskEmail = (email) => {
   const [name, domain] = email.split("@");
@@ -258,4 +261,81 @@ export const resetPasswordService = async (token, password, confirmPassword) => 
   user.resetPasswordExpires = undefined;
 
   await user.save();
+};
+
+// helper to generate a fallback username from Google name/email
+const generateUsernameFromGoogle = async (name, email) => {
+  let base =
+    (name && name.split(" ")[0]) ||
+    (email && email.split("@")[0]) ||
+    "user";
+
+  base = base.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  let username = base;
+  let counter = 1;
+
+  // ensure it’s unique
+  while (await User.findOne({ username })) {
+    username = `${base}${counter}`;
+    counter++;
+  }
+
+  return username;
+};
+
+export const googleAuthService = async (idToken) => {
+  if (!idToken) {
+    throw new Error("Missing Google ID token");
+  }
+
+  // 1) verify token with Google
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  const googleEmail = payload.email;
+  const googleName = payload.name;
+  const googleSub = payload.sub; // Google unique user ID
+
+  if (!googleEmail) {
+    throw new Error("Google account has no email");
+  }
+
+  // 2) check if user already exists
+  let user = await User.findOne({ email: googleEmail });
+
+  if (!user) {
+    // 3) create new user from Google data
+    const username = await generateUsernameFromGoogle(googleName, googleEmail);
+
+    // you can store googleSub in a `googleId` field if you add it to your model
+    user = await User.create({
+      name: googleName || username,
+      username,
+      email: googleEmail,
+      password: "", // password empty because they use Google login
+      isVerified: true, // Google email is trusted
+      // googleId: googleSub, // if you add this to schema
+    });
+  } else {
+    // if existing, ensure they are marked verified
+    if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+  }
+
+  // 4) return token + user data
+  return {
+    _id: user._id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    isVerified: user.isVerified,
+    token: generateToken(user._id),
+    provider: "google",
+  };
 };

@@ -5,8 +5,10 @@ import {
   verifyUserEmail,
   resendVerificationCode,
   forgotPasswordService,
-  resetPasswordService
+  resetPasswordService,
 } from "../services/authService.js";
+import { googleAuthService } from "../services/googleAuthService.js";
+
 
 
 export const signup = async (req, res) => {
@@ -128,5 +130,21 @@ export const logout = async (req, res) => {
   } catch (err) {
     console.error("Logout error:", err);
     res.status(500).json({ message: "Server error during logout" });
+  }
+};
+
+
+export const googleAuth = async (req, res) => {
+  try {
+    const { accessToken } = req.body; // from frontend
+
+    const data = await googleAuthService(accessToken);
+
+    return res.json(data);
+  } catch (err) {
+    console.error("Google auth error:", err);
+    return res
+      .status(400)
+      .json({ message: err.message || "Google authentication failed" });
   }
 };

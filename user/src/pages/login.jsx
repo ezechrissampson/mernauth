@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import axios from "axios";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [formData, setForm] = useState({ emailOrUsername: "", password: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -36,9 +38,7 @@ const Login = () => {
         localStorage.setItem("verifyEmail", realEmail);
 
         // show masked email in URL for UI
-        navigate(
-          `/verify-email?email=${encodeURIComponent(maskedEmail)}`
-        );
+        navigate(`/verify-email?email=${encodeURIComponent(maskedEmail)}`);
         return;
       }
 
@@ -54,8 +54,42 @@ const Login = () => {
     }
   };
 
+  // ✅ Google login for login/signup
+  const googleLogin = useGoogleLogin({
+    flow: "implicit", // using accessToken
+    onSuccess: async (tokenResponse) => {
+      try {
+        setGoogleLoading(true);
+        setError("");
+        setMessage("");
+
+        const accessToken = tokenResponse.access_token;
+
+        const res = await axios.post(
+          "http://localhost:5000/api/auth/google",
+          { accessToken }
+        );
+
+        // backend returns { token, user... }
+        localStorage.setItem("token", res.data.token);
+        setMessage("Logged in with Google successfully!");
+        navigate("/profile");
+      } catch (err) {
+        console.error("Google login error:", err);
+        setError(
+          err.response?.data?.message || "Google authentication failed"
+        );
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Google authentication was cancelled or failed.");
+    },
+  });
+
   const handleGoogleAuth = () => {
-    console.log("Google Auth Clicked");
+    googleLogin(); // trigger the hook
   };
 
   const handleAppleAuth = () => {
@@ -116,26 +150,28 @@ const Login = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-
-          <div className="text-center text-muted my-2">or continue with</div>
-
-          <div className="d-flex justify-content-center">
-            <button
-              type="button"
-              className="btn btn-outline-danger me-2"
-              onClick={handleGoogleAuth}
-            >
-              <FaGoogle className="me-2" /> Google
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-dark"
-              onClick={handleAppleAuth}
-            >
-              <FaApple className="me-2" /> Apple
-            </button>
-          </div>
         </form>
+
+        <div className="text-center text-muted my-2">or continue with</div>
+
+        <div className="d-flex justify-content-center">
+          <button
+            type="button"
+            className="btn btn-outline-danger me-2"
+            onClick={handleGoogleAuth}
+            disabled={googleLoading}
+          >
+            <FaGoogle className="me-2" />
+            {googleLoading ? "Connecting..." : "Google"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-dark"
+            onClick={handleAppleAuth}
+          >
+            <FaApple className="me-2" /> Apple
+          </button>
+        </div>
 
         <p className="text-center mt-4 mb-0">
           Don’t have an account?{" "}
