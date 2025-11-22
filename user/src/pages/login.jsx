@@ -29,20 +29,16 @@ const Login = () => {
         formData
       );
 
-      // 🔹 If backend says user needs verification
       if (res.data.needsVerification) {
         const realEmail = res.data.email;
         const maskedEmail = res.data.maskedEmail;
 
-        // store REAL email for verify-email page
         localStorage.setItem("verifyEmail", realEmail);
 
-        // show masked email in URL for UI
         navigate(`/verify-email?email=${encodeURIComponent(maskedEmail)}`);
         return;
       }
 
-      // 🔹 Normal successful login
       localStorage.setItem("token", res.data.token);
       setMessage("Login successful!");
       navigate("/profile");
@@ -54,28 +50,28 @@ const Login = () => {
     }
   };
 
-  // ✅ Google login for login/signup
+  // ✅ Google login
   const googleLogin = useGoogleLogin({
-    flow: "implicit", // using accessToken
-    onSuccess: async (tokenResponse) => {
+    flow: "implicit",
+    onSuccess: async (response) => {
       try {
         setGoogleLoading(true);
         setError("");
         setMessage("");
 
-        const accessToken = tokenResponse.access_token;
+        // from @react-oauth/google implicit flow
+        const accessToken = response.access_token; // 🔹 this exists
 
         const res = await axios.post(
           "http://localhost:5000/api/auth/google",
-          { accessToken }
+          { accessToken } // 🔹 MUST be "accessToken", not idToken
         );
 
-        // backend returns { token, user... }
         localStorage.setItem("token", res.data.token);
-        setMessage("Logged in with Google successfully!");
+        setMessage("Logged in with Google!");
         navigate("/profile");
       } catch (err) {
-        console.error("Google login error:", err);
+        console.error("Google auth error:", err);
         setError(
           err.response?.data?.message || "Google authentication failed"
         );
@@ -87,10 +83,6 @@ const Login = () => {
       setError("Google authentication was cancelled or failed.");
     },
   });
-
-  const handleGoogleAuth = () => {
-    googleLogin(); // trigger the hook
-  };
 
   const handleAppleAuth = () => {
     console.log("Apple Auth Clicked");
@@ -158,12 +150,13 @@ const Login = () => {
           <button
             type="button"
             className="btn btn-outline-danger me-2"
-            onClick={handleGoogleAuth}
+            onClick={() => googleLogin()}
             disabled={googleLoading}
           >
             <FaGoogle className="me-2" />
             {googleLoading ? "Connecting..." : "Google"}
           </button>
+
           <button
             type="button"
             className="btn btn-outline-dark"

@@ -1,3 +1,6 @@
+// middleware/authMiddleware.js
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 import { validateSessionToken } from "../services/sessionService.js";
 
 export const protect = async (req, res, next) => {
@@ -5,7 +8,7 @@ export const protect = async (req, res, next) => {
 
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer ")
+    req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
@@ -15,16 +18,24 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const { user } = await validateSessionToken(token);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = user;
-    req.token = token;
+    // ⛔ if you still have this check, remove it:
+    // if (!decoded.sessionId) { ... }
+
+    // we are using the TOKEN itself as session key:
+    await validateSessionToken(token);
+
+    req.user = await User.findById(decoded.id).select("-password");
+    if (!req.user) {
+      return res.status(401).json({ message: "User not found" });
+    }
 
     next();
   } catch (err) {
     console.error("Auth protect error:", err.message);
     return res
       .status(401)
-      .json({ message: err.message || "Not authorized" });
+      .json({ message: "Session expired or invalid. Please log in again." });
   }
 };

@@ -4,10 +4,6 @@ import crypto from "crypto"
 import { OAuth2Client } from "google-auth-library";
 import { sendEmail } from "../utils/sendEailer.js";
 import { generateToken } from "../utils/generateToken.js";
-import {
-  createSession,
-  invalidateUserSessions,
-} from "../services/sessionService.js";
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 
 
@@ -92,21 +88,17 @@ export const resendVerificationCode = async (email) => {
   return { message: "Verification code resent to your email" };
 };
 
-
-export const loginUser = async (emailOrUsername, password, userAgent) => {
+export const loginUser = async (emailOrUsername, password) => {
   const user = await User.findOne({
     $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
   });
-
   if (!user) throw new Error("Invalid credentials");
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
-  // if not verified → send code
   if (!user.isVerified) {
-    const code = generateVerificationCode(); // or your inline function
-
+    const code = generateVerificationCode();
     user.verificationCode = code;
     user.verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
@@ -120,37 +112,25 @@ export const loginUser = async (emailOrUsername, password, userAgent) => {
 
     return {
       needsVerification: true,
-      email: user.email, // REAL email
+      email: user.email,
       maskedEmail: maskEmail(user.email),
       message: "Email not verified. Verification code sent.",
     };
   }
 
-  // ✅ VERIFIED → single active session logic
+  const token = generateToken(user._id); // standard JWT with { id: user._id }
 
-  // 1) Kill previous sessions for this user
-  await invalidateUserSessions(user._id);
-
-  // 2) Create a fresh JWT
-  const token = generateToken(user._id);
-
-  // 3) Store session in DB
-  await createSession({
-    userId: user._id,
-    token,
-    userAgent: userAgent || "unknown",
-  });
-
-  // 4) Return to frontend
   return {
+    needsVerification: false,
     _id: user._id,
     name: user.name,
     username: user.username,
     email: user.email,
+    isVerified: user.isVerified,
     token,
-    needsVerification: false,
   };
 };
+
 
 export const getUserProfile = async (userId) => {
   const user = await User.findById(userId).select("-password");

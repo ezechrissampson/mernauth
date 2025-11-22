@@ -8,6 +8,7 @@ import {
   resetPasswordService,
 } from "../services/authService.js";
 import { googleAuthService } from "../services/googleAuthService.js";
+import {createSession ,invalidateUserSessions ,destroySessionByToken } from "../services/sessionService.js";
 
 
 
@@ -36,18 +37,33 @@ export const login = async (req, res) => {
   try {
     const { emailOrUsername, password } = req.body;
 
-    // simple userAgent string from headers for logging
-    const userAgent = req.headers["user-agent"] || "unknown";
+    const data = await loginUser(emailOrUsername, password);
 
-    const data = await loginUser(emailOrUsername, password, userAgent);
-
-    // if not verified
+    // If needs verification -> NO session, just return
     if (data.needsVerification) {
       return res.status(200).json(data);
     }
 
-    // verified → normal login with session token
-    return res.json(data);
+    // ✅ Verified → create session
+    const userId = data._id;
+    const token = data.token;
+    const userAgent = req.headers["user-agent"] || "unknown";
+
+    // single-active-session: clear old ones
+    await invalidateUserSessions(userId);
+
+    // create new session in DB with this token
+    await createSession({ userId, token, userAgent });
+
+    // respond to frontend
+    return res.json({
+      _id: data._id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      isVerified: data.isVerified,
+      token: data.token,
+    });
   } catch (err) {
     console.error("Login error:", err);
     res
@@ -55,7 +71,6 @@ export const login = async (req, res) => {
       .json({ message: err.message || "Server error during login" });
   }
 };
-
 
 export const profile = async (req, res) => {
   try {
@@ -124,6 +139,7 @@ export const logout = async (req, res) => {
       token = authHeader.split(" ")[1];
     }
 
+    // remove this session only
     await destroySessionByToken(token);
 
     res.json({ message: "Logged out successfully" });
@@ -136,9 +152,16 @@ export const logout = async (req, res) => {
 
 export const googleAuth = async (req, res) => {
   try {
-    const { accessToken } = req.body; // from frontend
+    const { accessToken } = req.body;
 
     const data = await googleAuthService(accessToken);
+
+    const userId = data._id;
+    const token = data.token;
+    const userAgent = req.headers["user-agent"] || "unknown";
+
+    await invalidateUserSessions(userId);
+    await createSession({ userId, token, userAgent });
 
     return res.json(data);
   } catch (err) {
