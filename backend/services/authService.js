@@ -12,7 +12,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const maskEmail = (email) => {
   const [name, domain] = email.split("@");
   if (!domain) return email;
-  const visible = name.slice(0, 3); // first 3 chars
+  const visible = name.slice(0, 3);
   return `${visible}***@${domain}`;
 };
 
@@ -34,7 +34,7 @@ export const registerUser = async ({ name, username, email, password }) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const code = generateVerificationCode();
-  const codeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+  const codeExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
   const newUser = await User.create({
     name,
@@ -181,28 +181,26 @@ export const forgotPasswordService = async (email) => {
 
   const user = await User.findOne({ email });
   if (!user) {
-    // For security, we pretend it worked
     return;
   }
 
-  // 1) generate token
   const resetToken = crypto.randomBytes(32).toString("hex");
 
-  // 2) hash token to store in DB
+
   const hashedToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  // 3) set fields on user
+
   user.resetPasswordToken = hashedToken;
-  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; 
   await user.save();
 
-  // 4) create reset URL for frontend
+
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-  // 5) send email
+
   const html = `
     <p>You requested to reset your password.</p>
     <p>Click the link below to set a new password (valid for 1 hour):</p>
@@ -243,7 +241,7 @@ export const resetPasswordService = async (token, password, confirmPassword) => 
   await user.save();
 };
 
-// helper to generate a fallback username from Google name/email
+
 const generateUsernameFromGoogle = async (name, email) => {
   let base =
     (name && name.split(" ")[0]) ||
@@ -269,7 +267,7 @@ export const googleAuthService = async (idToken) => {
     throw new Error("Missing Google ID token");
   }
 
-  // 1) verify token with Google
+
   const ticket = await googleClient.verifyIdToken({
     idToken,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -278,37 +276,36 @@ export const googleAuthService = async (idToken) => {
   const payload = ticket.getPayload();
   const googleEmail = payload.email;
   const googleName = payload.name;
-  const googleSub = payload.sub; // Google unique user ID
+  const googleSub = payload.sub;
 
   if (!googleEmail) {
     throw new Error("Google account has no email");
   }
 
-  // 2) check if user already exists
+
   let user = await User.findOne({ email: googleEmail });
 
   if (!user) {
-    // 3) create new user from Google data
+   
     const username = await generateUsernameFromGoogle(googleName, googleEmail);
 
-    // you can store googleSub in a `googleId` field if you add it to your model
+    
     user = await User.create({
       name: googleName || username,
       username,
       email: googleEmail,
-      password: "", // password empty because they use Google login
-      isVerified: true, // Google email is trusted
-      // googleId: googleSub, // if you add this to schema
+      password: "",
+      isVerified: true,
     });
   } else {
-    // if existing, ensure they are marked verified
+
     if (!user.isVerified) {
       user.isVerified = true;
       await user.save();
     }
   }
 
-  // 4) return token + user data
+  
   return {
     _id: user._id,
     name: user.name,

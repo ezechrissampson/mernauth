@@ -22,7 +22,7 @@ const Forgotpassword = () => {
         err.response?.data?.message ||
           "Something went wrong, please try again."
       );
-      setSubmitted(true); // still show the “check email” state
+      setSubmitted(true);
     }
   };
 

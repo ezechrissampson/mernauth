@@ -10,12 +10,11 @@ const Dashboard = () => {
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/auth/profile", {
-        withCredentials: true, // ✅ send cookie to backend
+        withCredentials: true,
       })
       .then((res) => setUser(res.data))
       .catch((err) => {
         console.error(err);
-        // if unauthorized, kick back to login
         if (err.response?.status === 401) {
           localStorage.removeItem("token");
           navigate("/login");
@@ -29,13 +28,13 @@ const Dashboard = () => {
         "http://localhost:5000/api/auth/logout",
         {},
         {
-          withCredentials: true, // ✅ send cookie so backend can clear it
+          withCredentials: true,
         }
       );
     } catch (err) {
       console.error("Logout error", err.response?.data || err.message);
     } finally {
-      localStorage.removeItem("token"); // still clear local token if present
+      localStorage.removeItem("token");
       window.location.href = "/login";
     }
   };

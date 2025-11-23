@@ -1,4 +1,3 @@
-// services/googleAuthService.js
 import axios from "axios";
 import User from "../models/User.js";
 import { generateToken } from "../utils/generateToken.js"; 
@@ -33,7 +32,7 @@ export const googleAuthService = async (accessToken, userAgent = "") => {
     throw new Error("Missing Google access token");
   }
 
-  // 1) get user info from Google
+
   const googleRes = await axios.get(GOOGLE_USERINFO_URL, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -43,7 +42,7 @@ export const googleAuthService = async (accessToken, userAgent = "") => {
   const payload = googleRes.data;
   const googleEmail = payload.email;
   const googleName = payload.name;
-  const googleSub = payload.sub; // unique Google ID
+  const googleSub = payload.sub;
 
   if (!googleEmail) {
     throw new Error("Google account has no email");
@@ -62,17 +61,15 @@ export const googleAuthService = async (accessToken, userAgent = "") => {
       name: googleName || username,
       username,
       email: googleEmail,
-      password: "", // they log in with Google
+      password: "",
       isVerified: true,
-      // googleId: googleSub, // if you later add this field
     });
   } else if (!user.isVerified) {
     user.isVerified = true;
     await user.save();
   }
 
-  // 3) create JWT + session (single session)
-  const token = generateToken(user._id); // this should sign { id: user._id }
+  const token = generateToken(user._id);
 
   await invalidateUserSessions(user._id);
 

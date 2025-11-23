@@ -12,7 +12,7 @@ import { protect, } from "../middlewares/authMiddleware.js";
 
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 mins
+  windowMs: 15 * 60 * 1000,
   max: 10,
   message: { message: "Too many login attempts. Try again later." },
 });

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 
 const Verifyemail = () => {
@@ -14,11 +13,9 @@ const Verifyemail = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // from URL – masked email only for display
   const searchParams = new URLSearchParams(location.search);
   const maskedEmail = searchParams.get("email");
 
-  // from localStorage – REAL email to send to backend
   const realEmail = localStorage.getItem("verifyEmail");
 
   const handleSubmit = async (e) => {
@@ -41,7 +38,7 @@ const Verifyemail = () => {
       const res = await axios.post(
         "http://localhost:5000/api/auth/verify-email",
         {
-          email: realEmail,  // IMPORTANT: real email, not maskedEmail
+          email: realEmail,
           code: otp,
         }
       );
@@ -49,7 +46,6 @@ const Verifyemail = () => {
       setMessage(res.data?.message || "Email verified successfully!");
       setVerified(true);
 
-      // clear localstorage key after success
       localStorage.removeItem("verifyEmail");
 
       setTimeout(() => {
@@ -76,7 +72,7 @@ const Verifyemail = () => {
       setResendLoading(true);
       const res = await axios.post(
         "http://localhost:5000/api/auth/resend-code",
-        { email: realEmail }  // again: real email
+        { email: realEmail }
       );
 
       setMessage(res.data?.message || "New code sent to your email.");

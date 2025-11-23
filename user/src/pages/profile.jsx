@@ -32,7 +32,7 @@ const Profile = () => {
     axios
       .get("http://localhost:5000/api/auth/profile", {
         headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true, // ✅ send cookies too
+        withCredentials: true,
       })
       .then((res) => {
         setUser(res.data);
@@ -71,7 +71,7 @@ const Profile = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
-          withCredentials: true, // ✅ cookie
+          withCredentials: true,
         }
       );
 
@@ -97,7 +97,7 @@ const Profile = () => {
         profileForm,
         {
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true, // ✅ cookie
+          withCredentials: true,
         }
       );
       setUser(res.data);
@@ -129,7 +129,7 @@ const Profile = () => {
         { oldPassword, newPassword, confirmPassword },
         {
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true, // ✅ cookie
+          withCredentials: true,
         }
       );
 
@@ -152,13 +152,12 @@ const handleLogout = async () => {
       "http://localhost:5000/api/auth/logout",
       {},
       {
-        withCredentials: true, // ✅ send cookie so backend can clear it
+        withCredentials: true,
       }
     );
   } catch (err) {
     console.error("Logout error", err.response?.data || err.message);
   } finally {
-    // still clear localStorage token in case you're using both
     localStorage.removeItem("token");
     window.location.href = "/login";
   }

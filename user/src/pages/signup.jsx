@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import { FaGoogle, FaApple } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,7 +24,6 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ---------- Normal email/password signup ----------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -50,7 +47,6 @@ const Signup = () => {
           "Signup successful! Please check your email for the verification code."
       );
 
-      // go to verify page with email
       navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
@@ -59,9 +55,8 @@ const Signup = () => {
     }
   };
 
-  // ---------- Google signup/login ----------
   const googleLogin = useGoogleLogin({
-    flow: "implicit", // using access_token flow
+    flow: "implicit",
     onSuccess: async (tokenResponse) => {
       try {
         setGoogleLoading(true);
@@ -75,7 +70,7 @@ const Signup = () => {
           { accessToken }
         );
 
-        // store your own JWT from backend
+
         localStorage.setItem("token", res.data.token);
         setMessage("Signed up / logged in with Google successfully!");
         navigate("/profile");
@@ -95,7 +90,6 @@ const Signup = () => {
 
   const handleAppleAuth = () => {
     console.log("Apple Auth Clicked");
-    // implement later
   };
 
   return (
@@ -192,7 +186,6 @@ const Signup = () => {
         <div className="text-center text-muted my-2">or continue with</div>
 
         <div className="d-flex justify-content-center">
-          {/* Google button with your design */}
           <button
             type="button"
             className="btn btn-outline-danger me-2"

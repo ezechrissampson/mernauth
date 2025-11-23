@@ -1,4 +1,3 @@
-// services/sessionService.js
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 import User from "../models/User.js";

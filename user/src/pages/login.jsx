@@ -28,7 +28,6 @@ const Login = () => {
         "http://localhost:5000/api/auth/login",
         formData,
         {
-          // ✅ allow browser to store / send httpOnly cookie
           withCredentials: true,
         }
       );
@@ -43,7 +42,6 @@ const Login = () => {
         return;
       }
 
-      // you can keep this for now (for headers-based auth)
       localStorage.setItem("token", res.data.token);
 
       setMessage("Login successful!");
@@ -70,12 +68,10 @@ const Login = () => {
           "http://localhost:5000/api/auth/google",
           { accessToken },
           {
-            // ✅ also store cookie for Google login
             withCredentials: true,
           }
         );
 
-        // still keep token in localStorage if you want
         localStorage.setItem("token", res.data.token);
 
         setMessage("Logged in with Google!");
