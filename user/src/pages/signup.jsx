@@ -34,20 +34,24 @@ const Signup = () => {
     }
 
     try {
-      setLoading(true);
-      const res = await axios.post("http://localhost:5000/api/auth/signup", {
-        name: formData.name,
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
+   setLoading(true);
+  const res = await axios.post("http://localhost:5000/api/auth/signup", {
+    name: formData.name,
+    username: formData.username,
+    email: formData.email,
+    password: formData.password,
+  });
 
-      setMessage(
-        res.data?.message ||
-          "Signup successful! Please check your email for the verification code."
-      );
+  setMessage(
+    res.data?.message ||
+      "Signup successful! Please check your email for the verification code."
+  );
 
-      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+
+  localStorage.setItem("verifyEmail", formData.email);
+  navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+
+
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
     } finally {
