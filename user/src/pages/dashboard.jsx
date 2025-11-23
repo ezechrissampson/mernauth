@@ -1,44 +1,44 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaCode, FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
- 
-
-
 const Dashboard = () => {
- const [user, setUser] = useState(null); 
- const token = localStorage.getItem("token");
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/auth/profile", {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // ✅ send cookie to backend
       })
       .then((res) => setUser(res.data))
-      .catch((err) => console.error(err));
-  }, []);
+      .catch((err) => {
+        console.error(err);
+        // if unauthorized, kick back to login
+        if (err.response?.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+      });
+  }, [navigate]);
 
-
-const handleLogout = async () => {
-  const token = localStorage.getItem("token");
-
-  try {
-    await axios.post(
-      "http://localhost:5000/api/auth/logout",
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-  } catch (err) {
-    console.error("Logout error", err.response?.data || err.message);
-  } finally {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  }
-};
-
-  
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/api/auth/logout",
+        {},
+        {
+          withCredentials: true, // ✅ send cookie so backend can clear it
+        }
+      );
+    } catch (err) {
+      console.error("Logout error", err.response?.data || err.message);
+    } finally {
+      localStorage.removeItem("token"); // still clear local token if present
+      window.location.href = "/login";
+    }
+  };
 
   return (
     <div className="vh-100 bg-light">
@@ -50,12 +50,12 @@ const handleLogout = async () => {
           <Link to="/profile" className="btn btn-outline-light btn-sm me-2">
             <FaUser className="me-1" /> Profile
           </Link>
-        <button
-        className="btn btn-outline-light btn-sm"
-        onClick={() => handleLogout()}
-        >
-        Logout
-        </button>
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       </nav>
 
@@ -68,7 +68,10 @@ const handleLogout = async () => {
           authentication and admin management system.
         </p>
 
-        <div className="card shadow-sm p-4 mx-auto" style={{ maxWidth: "650px" }}>
+        <div
+          className="card shadow-sm p-4 mx-auto"
+          style={{ maxWidth: "650px" }}
+        >
           <div className="card-body">
             <FaCode className="text-primary fs-1 mb-3" />
             <h4 className="fw-bold mb-2">Project Overview</h4>
@@ -81,7 +84,7 @@ const handleLogout = async () => {
             </p>
 
             <div className="alert alert-info mt-3">
-               Go to your{" "}
+              Go to your{" "}
               <Link to="/profile" className="fw-bold text-decoration-none">
                 Profile
               </Link>{" "}

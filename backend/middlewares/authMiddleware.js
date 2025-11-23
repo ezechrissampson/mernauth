@@ -6,7 +6,14 @@ import { validateSessionToken } from "../services/sessionService.js";
 export const protect = async (req, res, next) => {
   let token;
 
+  // 1) Prefer HTTP-only cookie
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  // 2) Fallback: Authorization header (optional)
   if (
+    !token &&
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
@@ -18,10 +25,10 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // 🔍 Debug if needed
+    // console.log("protect → incoming token:", token);
 
-    // ⛔ if you still have this check, remove it:
-    // if (!decoded.sessionId) { ... }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // we are using the TOKEN itself as session key:
     await validateSessionToken(token);

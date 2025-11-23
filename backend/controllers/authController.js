@@ -39,30 +39,38 @@ export const login = async (req, res) => {
 
     const data = await loginUser(emailOrUsername, password);
 
-    // If needs verification -> NO session, just return
+    // If needs verification -> NO session, NO cookie
     if (data.needsVerification) {
       return res.status(200).json(data);
     }
 
-    // ✅ Verified → create session
     const userId = data._id;
-    const token = data.token;
+    const token = data.token; // JWT from generateToken(...)
     const userAgent = req.headers["user-agent"] || "unknown";
 
-    // single-active-session: clear old ones
+    // 🔐 Ensure ONLY ONE active session
     await invalidateUserSessions(userId);
 
-    // create new session in DB with this token
+    // 🔐 Create DB session for this token
     await createSession({ userId, token, userAgent });
 
-    // respond to frontend
+    // 🔐 Set httpOnly cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // 🔁 You can stop sending token to frontend now (safer)
     return res.json({
       _id: data._id,
       name: data.name,
       username: data.username,
       email: data.email,
       isVerified: data.isVerified,
-      token: data.token,
+      provider: data.provider || "local",
+      // no token here
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -71,6 +79,7 @@ export const login = async (req, res) => {
       .json({ message: err.message || "Server error during login" });
   }
 };
+
 
 export const profile = async (req, res) => {
   try {
@@ -134,13 +143,27 @@ export const logout = async (req, res) => {
   try {
     let token = null;
 
+    // from cookie
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // from header as backup
     const authHeader = req.headers.authorization || req.headers.Authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    if (!token && authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
     }
 
-    // remove this session only
-    await destroySessionByToken(token);
+    if (token) {
+      await destroySessionByToken(token);
+    }
+
+    // clear cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
     res.json({ message: "Logged out successfully" });
   } catch (err) {
@@ -152,18 +175,38 @@ export const logout = async (req, res) => {
 
 export const googleAuth = async (req, res) => {
   try {
-    const { accessToken } = req.body;
+    const { accessToken } = req.body; // you are sending this from frontend
 
     const data = await googleAuthService(accessToken);
 
     const userId = data._id;
-    const token = data.token;
+    const token = data.token; // JWT
     const userAgent = req.headers["user-agent"] || "unknown";
 
+    // 🔐 Only one session
     await invalidateUserSessions(userId);
+
+    // 🔐 Create session
     await createSession({ userId, token, userAgent });
 
-    return res.json(data);
+    // 🔐 Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Return user data (no need to send token)
+    return res.json({
+      _id: data._id,
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      isVerified: data.isVerified,
+      provider: "google",
+      // no token
+    });
   } catch (err) {
     console.error("Google auth error:", err);
     return res

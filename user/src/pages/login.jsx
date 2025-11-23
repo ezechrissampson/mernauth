@@ -26,7 +26,11 @@ const Login = () => {
       setLoading(true);
       const res = await axios.post(
         "http://localhost:5000/api/auth/login",
-        formData
+        formData,
+        {
+          // ✅ allow browser to store / send httpOnly cookie
+          withCredentials: true,
+        }
       );
 
       if (res.data.needsVerification) {
@@ -39,7 +43,9 @@ const Login = () => {
         return;
       }
 
+      // you can keep this for now (for headers-based auth)
       localStorage.setItem("token", res.data.token);
+
       setMessage("Login successful!");
       navigate("/profile");
     } catch (err) {
@@ -50,7 +56,6 @@ const Login = () => {
     }
   };
 
-  // ✅ Google login
   const googleLogin = useGoogleLogin({
     flow: "implicit",
     onSuccess: async (response) => {
@@ -59,15 +64,20 @@ const Login = () => {
         setError("");
         setMessage("");
 
-        // from @react-oauth/google implicit flow
-        const accessToken = response.access_token; // 🔹 this exists
+        const accessToken = response.access_token;
 
         const res = await axios.post(
           "http://localhost:5000/api/auth/google",
-          { accessToken } // 🔹 MUST be "accessToken", not idToken
+          { accessToken },
+          {
+            // ✅ also store cookie for Google login
+            withCredentials: true,
+          }
         );
 
+        // still keep token in localStorage if you want
         localStorage.setItem("token", res.data.token);
+
         setMessage("Logged in with Google!");
         navigate("/profile");
       } catch (err) {

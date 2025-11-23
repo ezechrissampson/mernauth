@@ -6,9 +6,7 @@ import axios from "axios";
 const Profile = () => {
   const [user, setUser] = useState(null);
 
-
   const [profileForm, setProfileForm] = useState({ name: "", email: "" });
-
 
   const [passwordForm, setPasswordForm] = useState({
     oldPassword: "",
@@ -34,6 +32,7 @@ const Profile = () => {
     axios
       .get("http://localhost:5000/api/auth/profile", {
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // ✅ send cookies too
       })
       .then((res) => {
         setUser(res.data);
@@ -50,7 +49,6 @@ const Profile = () => {
 
   if (!user) return <div className="text-center mt-5">Loading...</div>;
 
-
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -58,11 +56,9 @@ const Profile = () => {
     setImageMessage("");
     setImageError("");
 
-
     const previewUrl = URL.createObjectURL(file);
     setUser((prev) => ({ ...prev, profilePic: previewUrl }));
 
-    // send to backend (if you have endpoint for it)
     try {
       const formData = new FormData();
       formData.append("profilePic", file);
@@ -75,6 +71,7 @@ const Profile = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
+          withCredentials: true, // ✅ cookie
         }
       );
 
@@ -84,7 +81,6 @@ const Profile = () => {
       setImageError(err.response?.data?.message || "Failed to update image");
     }
   };
-
 
   const handleProfileChange = (e) => {
     setProfileForm({ ...profileForm, [e.target.name]: e.target.value });
@@ -101,6 +97,7 @@ const Profile = () => {
         profileForm,
         {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true, // ✅ cookie
         }
       );
       setUser(res.data);
@@ -109,7 +106,6 @@ const Profile = () => {
       setProfileError(err.response?.data?.message || "Update failed");
     }
   };
-
 
   const handlePasswordChange = (e) => {
     setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value });
@@ -133,11 +129,16 @@ const Profile = () => {
         { oldPassword, newPassword, confirmPassword },
         {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true, // ✅ cookie
         }
       );
 
       setPasswordMessage("Password updated successfully");
-      setPasswordForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (err) {
       setPasswordError(
         err.response?.data?.message || "Failed to update password"
@@ -146,47 +147,44 @@ const Profile = () => {
   };
 
 const handleLogout = async () => {
-  const token = localStorage.getItem("token");
-
   try {
     await axios.post(
       "http://localhost:5000/api/auth/logout",
       {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      {
+        withCredentials: true, // ✅ send cookie so backend can clear it
+      }
     );
   } catch (err) {
     console.error("Logout error", err.response?.data || err.message);
   } finally {
+    // still clear localStorage token in case you're using both
     localStorage.removeItem("token");
     window.location.href = "/login";
   }
 };
 
+
   return (
     <div className="bg-light min-vh-100">
-
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary px-4">
         <a className="navbar-brand fw-bold" href="#">
           User Profile
         </a>
         <div className="ms-auto">
-        <button
-        className="btn btn-outline-light btn-sm"
-        onClick={() => handleLogout()}
-        >
-        Logout
-        </button>
-
-          <Link
-            to="/dashboard"
-            className="btn btn-outline-light btn-sm ms-2"
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={() => handleLogout()}
           >
+            Logout
+          </button>
+
+          <Link to="/dashboard" className="btn btn-outline-light btn-sm ms-2">
             Dashboard
           </Link>
         </div>
       </nav>
 
-   
       <div className="container py-5">
         <div
           className="card shadow-lg p-4 mx-auto"
@@ -194,16 +192,14 @@ const handleLogout = async () => {
         >
           <h3 className="fw-bold text-center text-primary mb-4">My Profile</h3>
 
- 
           <div className="text-center mb-4">
             {user.profilePic ? (
               <img
-                  src={
+                src={
                   user.profilePic?.startsWith("http")
-                  ? user.profilePic
-                  : `http://localhost:5000/${user.profilePic}`
-  }
-
+                    ? user.profilePic
+                    : `http://localhost:5000/${user.profilePic}`
+                }
                 alt="Profile"
                 className="rounded-circle mb-3"
                 style={{ width: "110px", height: "110px", objectFit: "cover" }}
@@ -230,7 +226,6 @@ const handleLogout = async () => {
             )}
           </div>
 
-     
           <form onSubmit={handleProfileUpdate}>
             <div className="row g-3">
               <div className="col-md-6">

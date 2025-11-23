@@ -19,13 +19,13 @@ const loginLimiter = rateLimit({
 
 const router = express.Router();
 
-router.post("/signup", signup);
+router.post("/signup", loginLimiter, signup);
 router.post("/login", loginLimiter ,login);
-router.post("/google", googleAuth);
+router.post("/google", loginLimiter, googleAuth);
 router.get("/profile", protect, profile);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-code", resendCode)
-router.post("/forgot-password", forgotPassword);
+router.post("/forgot-password", loginLimiter, forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.post("/logout", logout);
 
