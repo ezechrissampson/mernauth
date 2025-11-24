@@ -2,3 +2,4 @@
 backend/.env
 user/.env
 backend/.env
+node_modules
