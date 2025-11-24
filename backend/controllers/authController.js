@@ -183,7 +183,6 @@ export const googleAuth = async (req, res) => {
     
     await invalidateUserSessions(userId);
 
-    n
     await createSession({ userId, token, userAgent });
 
     
