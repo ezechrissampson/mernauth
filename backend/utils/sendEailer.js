@@ -10,12 +10,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async (toEmail, subject, text, html) => {
+export const sendEmail = async (toEmail, subject, html) => {
   const mailOptions = {
     from: `"Mernauth" <${process.env.GMAIL_USER}>`,
     to: toEmail,
     subject,
-    text,
     html,
   };
 

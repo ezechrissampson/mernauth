@@ -45,14 +45,60 @@ export const registerUser = async ({ name, username, email, password }) => {
     verificationCode: code,
     verificationCodeExpires: codeExpiry,
   });
+  
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify Your Email</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px 0;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="padding:24px 24px 16px 24px;text-align:center;">
+                <h1 style="margin:0;font-size:24px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+                  Verify Your Email
+                </h1>
+              </td>
+            </tr>
 
-  // send verification mail
-  await sendEmail(newUser.email,   
-  "Verify your email",
-  `Your verification code is: ${code}`,
-  `<p>Your verification code is:</p><h2>${code}</h2>`);
+            <tr>
+              <td style="padding:0 24px 16px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#4b5563;line-height:1.6;">
+                <p style="margin:0 0 12px 0;">
+                  Thanks for signing up for <strong>Mernauth</strong>.
+                </p>
+                <p style="margin:0 0 16px 0;">
+                  Use the code below to verify your email address.
+                </p>
+                <p style="font-size:24px;font-weight:bold;color:#111827;margin:0 0 16px 0;letter-spacing:4px;">
+                  ${code}
+                </p>
+              </td>
+            </tr>
 
-  // you can return token or not at signup – here I’ll include it like you asked
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#9ca3af;line-height:1.6;border-top:1px solid #e5e7eb;">
+                <p style="margin:12px 0 0 0;">
+                  If you didn’t create an account with Mernauth, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+
+
+await sendEmail(newUser.email, "Verify your email", html);
+
   return {
     _id: newUser._id,
     name: newUser.name,
@@ -103,12 +149,59 @@ export const loginUser = async (emailOrUsername, password) => {
     user.verificationCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    await sendEmail(
-      user.email,
-      "Verify your email",
-      `Your verification code is: ${code}`,
-      `<p>Your verification code is:</p><h2>${code}</h2>`
-    );
+
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify Your Email</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px 0;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="padding:24px 24px 16px 24px;text-align:center;">
+                <h1 style="margin:0;font-size:24px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+                  Verify Your Email
+                </h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:0 24px 16px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#4b5563;line-height:1.6;">
+                <p style="margin:0 0 12px 0;">
+                  Thanks for signing up for <strong>Mernauth</strong>.
+                </p>
+                <p style="margin:0 0 16px 0;">
+                  Use the code below to verify your email address.
+                </p>
+                <p style="font-size:24px;font-weight:bold;color:#111827;margin:0 0 16px 0;letter-spacing:4px;">
+                  ${code}
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#9ca3af;line-height:1.6;border-top:1px solid #e5e7eb;">
+                <p style="margin:12px 0 0 0;">
+                  If you didn’t create an account with Mernauth, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+
+
+    await sendEmail(user.email, "Verify your email", html);
 
     return {
       needsVerification: true,
@@ -201,12 +294,89 @@ export const forgotPasswordService = async (email) => {
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
 
-  const html = `
-    <p>You requested to reset your password.</p>
-    <p>Click the link below to set a new password (valid for 1 hour):</p>
-    <a href="${resetUrl}" target="_blank">${resetUrl}</a>
-    <p>If you did not request this, just ignore this email.</p>
-  `;
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Password Reset</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:20px 0;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="padding:24px 24px 16px 24px;text-align:center;">
+                <h1 style="margin:0;font-size:24px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+                  Password Reset Request
+                </h1>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:0 24px 16px 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#4b5563;line-height:1.6;">
+                <p style="margin:0 0 12px 0;">
+                  You requested to reset your password for your <strong>Mernauth</strong> account.
+                </p>
+                <p style="margin:0 0 16px 0;">
+                  Click the button below to set a new password. This link is valid for
+                  <strong>1 hour</strong>.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="padding:0 24px 24px 24px;">
+                <!-- Button -->
+                <a href="${resetUrl}"
+                   target="_blank"
+                   style="
+                     display:inline-block;
+                     background-color:#2563eb;
+                     color:#ffffff;
+                     text-decoration:none;
+                     padding:12px 24px;
+                     border-radius:6px;
+                     font-family:Arial,Helvetica,sans-serif;
+                     font-size:14px;
+                     font-weight:bold;
+                   ">
+                  Reset Password
+                </a>
+              </td>
+            </tr>
+
+            <!-- Fallback raw link -->
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#9ca3af;line-height:1.6;">
+                <p style="margin:0 0 8px 0;">
+                  If the button above doesn’t work, copy and paste this link into your browser:
+                </p>
+                <p style="word-break:break-all;margin:0;">
+                  <a href="${resetUrl}" target="_blank" style="color:#2563eb;">
+                    ${resetUrl}
+                  </a>
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#9ca3af;line-height:1.6;border-top:1px solid #e5e7eb;">
+                <p style="margin:12px 0 0 0;">
+                  If you did not request this, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
+
 
   await sendEmail(user.email, "Password Reset Request", html);
 };
