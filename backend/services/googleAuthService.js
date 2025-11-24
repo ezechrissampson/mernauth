@@ -48,7 +48,7 @@ export const googleAuthService = async (accessToken, userAgent = "") => {
     throw new Error("Google account has no email");
   }
 
-  // 2) find or create user
+
   let user = await User.findOne({ email: googleEmail });
 
   if (!user) {

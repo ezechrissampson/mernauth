@@ -14,11 +14,11 @@ export const seedAdmin = async () => {
         pin: hashedPin,
       });
 
-      console.log("✅ Default admin created.");
+      console.log("Default admin created.");
     } else {
       console.log(" ");
     }
   } catch (err) {
-    console.error("❌ Error seeding admin:", err);
+    console.error("Error seeding admin:", err);
   }
 };

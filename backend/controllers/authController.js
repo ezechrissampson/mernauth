@@ -11,7 +11,6 @@ import { googleAuthService } from "../services/googleAuthService.js";
 import {createSession ,invalidateUserSessions ,destroySessionByToken } from "../services/sessionService.js";
 
 
-
 export const signup = async (req, res) => {
   try {
     const data = await registerUser(req.body);
@@ -101,7 +100,6 @@ export const verifyEmail = async (req, res) => {
       .json({ message: err.message || "Server error verifying email" });
   }
 };
-
 
 export const forgotPassword = async (req, res) => {
   try {
